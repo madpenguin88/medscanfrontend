@@ -1,7 +1,7 @@
 import axios from 'axios';
 import type { MedicalAnalysis, MedicalRecordDto, MedicalRecordSummaryDto, AiHealthReportDto } from './types/medical';
 
-const API_BASE_URL = 'http://localhost:5117/api'; // Or your backend port
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5117/api';
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
