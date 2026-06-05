@@ -43,13 +43,15 @@ export interface RegisterData {
   name?: string;
   email?: string;
   password?: string;
-  age?: number;
+  dateOfBirth?: string;
   gender?: string;
 }
 
 export const authService = {
   login: (data: LoginData) => api.post('/Auth/login', data),
   register: (data: RegisterData) => api.post('/Auth/register', data),
+  forgotPassword: (email: string) => api.post('/Auth/forgot-password', { email }),
+  resetPassword: (token: string, newPassword: string) => api.post('/Auth/reset-password', { token, newPassword }),
 };
 
 export const userService = {

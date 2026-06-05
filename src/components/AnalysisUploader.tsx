@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { UploadCloud, AlertCircle, CheckCircle, Clock, FileIcon, X, ArrowRight } from 'lucide-react';
+import { UploadCloud, AlertCircle, CheckCircle, Clock, FileIcon, X, ArrowRight, Sparkles, Home } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { MedicalAnalysis } from '../types/medical';
 import { useAnalysisParser } from '../hooks/useAnalysisParser';
 import { AnalysisTable } from './AnalysisTable';
@@ -10,7 +12,7 @@ interface Props {
 
 export function AnalysisUploader({ onSave }: Props) {
   const [analyses, setAnalyses] = useState<MedicalAnalysis[]>([]);
-  const [toastMessage, setToastMessage] = useState('');
+  const [savedCount, setSavedCount] = useState(0);
   const [saveError, setSaveError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [currentFile, setCurrentFile] = useState<File | null>(null);
@@ -58,6 +60,7 @@ export function AnalysisUploader({ onSave }: Props) {
     if (file.size > 10 * 1024 * 1024) { alert('Fișierul este prea mare. Maxim 10MB.'); return; }
     setAnalyses([]);
     setSaveError('');
+    setSavedCount(0);
     setCurrentFile(file);
     const extracted = await parsePDF(file);
     setAnalyses(extracted);
@@ -116,8 +119,7 @@ export function AnalysisUploader({ onSave }: Props) {
       setCollectionDate('');
       setLaboratory('');
       setCurrentFile(null);
-      setToastMessage(`${finalized.length} analiz${finalized.length === 1 ? 'ă' : 'e'} salvate cu succes!`);
-      setTimeout(() => setToastMessage(''), 4000);
+      setSavedCount(finalized.length);
     } catch {
       setSaveError('Eroare la salvarea analizelor. Încearcă din nou.');
     } finally {
@@ -130,12 +132,60 @@ export function AnalysisUploader({ onSave }: Props) {
 
   return (
     <div className="space-y-4">
-      {/* Toast */}
-      {toastMessage && (
-        <div className="flex items-center gap-3 px-5 py-4 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-2xl text-emerald-700 dark:text-emerald-400 font-medium text-sm">
-          <CheckCircle size={18} className="shrink-0" /> {toastMessage}
-        </div>
-      )}
+      {/* Post-save success panel */}
+      <AnimatePresence>
+        {savedCount > 0 && (
+          <motion.div
+            key="success"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+            className="rounded-2xl border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-950/30 overflow-hidden"
+          >
+            <div className="px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center shrink-0">
+                <motion.div
+                  initial={{ scale: 0, rotate: -20 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: 'spring', stiffness: 320, damping: 20, delay: 0.15 }}
+                >
+                  <CheckCircle size={22} className="text-emerald-600 dark:text-emerald-400" />
+                </motion.div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-emerald-800 dark:text-emerald-300 text-sm">
+                  {savedCount} analiz{savedCount === 1 ? 'ă salvată' : 'e salvate'} cu succes
+                </p>
+                <p className="text-xs text-emerald-700/70 dark:text-emerald-400/70 mt-0.5">
+                  Mergi la Dashboard și generează raportul AI pentru a vedea interpretarea completă.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Link
+                  to="/"
+                  className="flex items-center gap-1.5 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold text-sm transition-all shadow-md shadow-emerald-500/25 hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <Sparkles size={14} />
+                  Generează raport AI
+                </Link>
+                <button
+                  onClick={() => setSavedCount(0)}
+                  className="px-3 py-2.5 text-sm text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            <div className="px-5 py-2.5 bg-emerald-100/60 dark:bg-emerald-900/20 border-t border-emerald-200/60 dark:border-emerald-500/20 flex items-start gap-2">
+              <Home size={12} className="text-emerald-600 dark:text-emerald-500 shrink-0 mt-0.5" />
+              <p className="text-xs text-emerald-700/80 dark:text-emerald-500">
+                Pe Dashboard apasă <strong>„Generează Raport AI"</strong> — MedScan va analiza toate rapoartele salvate și va crea un rezumat personalizat al stării tale de sănătate.
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
         {/* Metadata + save bar — shown once analyses are loaded */}

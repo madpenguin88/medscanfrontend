@@ -37,7 +37,102 @@ export function AnalysisTable({ analyses, editable = false, onUpdate, onRemove }
         )}
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
+      {/* ── Mobile card list (< sm) ── */}
+      <div className="sm:hidden rounded-xl border border-zinc-200 dark:border-zinc-800 divide-y divide-zinc-100 dark:divide-zinc-800/60 bg-white dark:bg-zinc-950">
+        {analyses.map((item, idx) => {
+          const st = STATUS_CONFIG[item.status as keyof typeof STATUS_CONFIG];
+          const isAbnormal = item.status === 'High' || item.status === 'Low' || item.status === 'Abnormal';
+          const isLow = item.status === 'Low';
+          const borderCls = isAbnormal && !isLow
+            ? 'border-l-rose-400'
+            : isLow
+            ? 'border-l-amber-400'
+            : 'border-l-transparent';
+          const refLabel = item.referenceRange
+            ? (item.referenceRange.min !== undefined && item.referenceRange.max !== undefined
+                ? `${item.referenceRange.min} – ${item.referenceRange.max}`
+                : item.referenceRange.max !== undefined
+                ? `< ${item.referenceRange.max}`
+                : `> ${item.referenceRange.min}`)
+            : item.referenceNote ?? null;
+          return (
+            <div
+              key={item.id}
+              className={`flex items-start gap-3 px-4 py-3.5 border-l-[3px] ${borderCls} ${isAbnormal ? 'bg-rose-50/30 dark:bg-rose-950/20' : ''}`}
+            >
+              <span className="mt-0.5 w-5 text-xs text-zinc-400 tabular-nums shrink-0 text-right">{idx + 1}</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2 mb-1">
+                  {editable ? (
+                    <input
+                      type="text"
+                      value={item.name}
+                      onChange={e => onUpdate?.(item.id, 'name', e.target.value)}
+                      className="flex-1 bg-transparent outline-none focus:ring-1 focus:ring-blue-500 rounded px-1 font-medium text-zinc-900 dark:text-zinc-100 text-sm"
+                    />
+                  ) : (
+                    <span className="font-medium text-zinc-900 dark:text-zinc-100 text-sm leading-snug">{item.name}</span>
+                  )}
+                  {st && (
+                    <span className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${st.cls}`}>
+                      <st.Icon size={10} strokeWidth={2.5} />
+                      {st.label}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {editable ? (
+                    item.textValue != null ? (
+                      <input
+                        type="text"
+                        value={item.textValue}
+                        onChange={e => onUpdate?.(item.id, 'textValue', e.target.value)}
+                        className="bg-transparent outline-none focus:ring-1 focus:ring-blue-500 rounded px-1 text-sm font-semibold tabular-nums text-zinc-800 dark:text-zinc-200 w-24"
+                      />
+                    ) : (
+                      <input
+                        type="number"
+                        value={item.value ?? ''}
+                        onChange={e => onUpdate?.(item.id, 'value', e.target.value === '' ? null : parseFloat(e.target.value))}
+                        className="bg-transparent outline-none focus:ring-1 focus:ring-blue-500 rounded px-1 text-sm font-semibold tabular-nums text-zinc-800 dark:text-zinc-200 w-20"
+                      />
+                    )
+                  ) : (
+                    <span className={`text-sm font-semibold tabular-nums ${isAbnormal ? 'text-rose-600 dark:text-rose-400' : 'text-zinc-800 dark:text-zinc-200'}`}>
+                      {item.textValue ?? item.value ?? '—'}
+                    </span>
+                  )}
+                  {editable ? (
+                    <input
+                      type="text"
+                      value={item.unit}
+                      onChange={e => onUpdate?.(item.id, 'unit', e.target.value)}
+                      className="bg-transparent outline-none focus:ring-1 focus:ring-blue-500 rounded px-1 text-xs text-zinc-500 w-16"
+                    />
+                  ) : (
+                    item.unit && <span className="text-xs text-zinc-400 dark:text-zinc-500">{item.unit}</span>
+                  )}
+                  {refLabel && (
+                    <span className="text-xs text-zinc-400 dark:text-zinc-500 font-mono">ref: {refLabel}</span>
+                  )}
+                </div>
+              </div>
+              {editable && (
+                <button
+                  onClick={() => onRemove?.(item.id)}
+                  className="shrink-0 p-1.5 rounded-lg text-zinc-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all"
+                  title="Șterge"
+                >
+                  <Trash2 size={14} />
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ── Desktop table (sm+) ── */}
+      <div className="hidden sm:block overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
         <table className="w-full text-sm text-left">
           <thead>
             <tr className="bg-zinc-50 dark:bg-zinc-900/80 border-b border-zinc-200 dark:border-zinc-800">
@@ -142,7 +237,7 @@ export function AnalysisTable({ analyses, editable = false, onUpdate, onRemove }
                     <td className="px-3 py-3.5">
                       <button
                         onClick={() => onRemove?.(item.id)}
-                        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-zinc-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all"
+                        className="opacity-0 group-hover:opacity-100 transition-all duration-200 p-1.5 rounded-lg text-zinc-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10"
                         title="Șterge"
                       >
                         <Trash2 size={14} />

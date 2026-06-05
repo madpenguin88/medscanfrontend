@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, type FormEvent } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate, useParams, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate, useParams, useSearchParams, Navigate } from 'react-router-dom';
 import { Activity, FileText, Home, Upload, User, AlertCircle, CheckCircle2, LogOut, ArrowRight, Lock, Mail, Download, ChevronRight, Calendar, BarChart2, Sparkles, Trash2, TrendingUp, TrendingDown, Minus, Search, Shield, RefreshCw, ChevronDown, Loader2, Brain, FlaskConical, Heart } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { authService, userService, medicalRecordsService, healthReportService } from './api';
 import { AnalysisUploader } from './components/AnalysisUploader';
 import { EvolutionChart } from './components/EvolutionChart';
@@ -186,22 +186,72 @@ function Dashboard() {
         <h1 className="text-3xl font-bold text-zinc-900 dark:text-white mb-10">
           {greeting}{firstName ? `, ${firstName}` : ''}!
         </h1>
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/10 flex items-center justify-center mb-6">
-            <FileText size={32} className="text-blue-400" />
+        <div className="space-y-8">
+          <div className="text-center">
+            <h2 className="text-xl font-bold text-zinc-800 dark:text-white mb-2">Cum funcționează MedScan</h2>
+            <p className="text-zinc-500 dark:text-zinc-400 max-w-md mx-auto text-sm">
+              Trei pași simpli pentru a-ți înțelege analizele medicale cu ajutorul inteligenței artificiale.
+            </p>
           </div>
-          <h2 className="text-xl font-bold text-zinc-800 dark:text-white mb-2">Nicio analiză încărcată</h2>
-          <p className="text-zinc-500 dark:text-zinc-400 mb-8 max-w-sm">
-            Încarcă primul tău raport medical pentru a accesa interpretarea AI și urmărirea tendințelor.
-          </p>
-          <Link
-            to="/upload"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-colors shadow-lg shadow-blue-500/20"
-          >
-            <Upload size={18} />
-            Încarcă un PDF
-            <ArrowRight size={16} />
-          </Link>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              {
+                step: '01',
+                icon: Upload,
+                iconBg: 'bg-blue-100 dark:bg-blue-900/40',
+                iconColor: 'text-blue-600 dark:text-blue-400',
+                numColor: 'text-blue-400/20 dark:text-blue-400/15',
+                borderColor: 'border-blue-100 dark:border-blue-900/40',
+                title: 'Încarcă PDF-ul',
+                desc: 'Primești un PDF cu analizele de la laborator. Îl încarci în MedScan cu drag & drop sau prin selecție.',
+              },
+              {
+                step: '02',
+                icon: CheckCircle2,
+                iconBg: 'bg-indigo-100 dark:bg-indigo-900/40',
+                iconColor: 'text-indigo-600 dark:text-indigo-400',
+                numColor: 'text-indigo-400/20 dark:text-indigo-400/15',
+                borderColor: 'border-indigo-100 dark:border-indigo-900/40',
+                title: 'Verifică și salvează',
+                desc: 'AI-ul extrage automat valorile numerice. Verifici că sunt corecte, modifici dacă e nevoie, apoi salvezi.',
+              },
+              {
+                step: '03',
+                icon: Brain,
+                iconBg: 'bg-violet-100 dark:bg-violet-900/40',
+                iconColor: 'text-violet-600 dark:text-violet-400',
+                numColor: 'text-violet-400/20 dark:text-violet-400/15',
+                borderColor: 'border-violet-100 dark:border-violet-900/40',
+                title: 'Generează raport AI',
+                desc: 'Revii pe Dashboard și apeși „Generează Raport AI". MedScan analizează toate valorile și creează un rezumat personalizat.',
+              },
+            ].map(({ step, icon: Icon, iconBg, iconColor, numColor, borderColor, title, desc }, i) => (
+              <motion.div
+                key={step}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease: 'easeOut', delay: i * 0.1 }}
+                className={`relative bg-white dark:bg-zinc-900 border ${borderColor} rounded-2xl p-5`}
+              >
+                <span className={`absolute top-4 right-5 text-3xl font-black ${numColor} select-none leading-none`}>{step}</span>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${iconBg} ${iconColor}`}>
+                  <Icon size={20} />
+                </div>
+                <p className="font-semibold text-zinc-900 dark:text-white text-sm mb-1.5">{title}</p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">{desc}</p>
+              </motion.div>
+            ))}
+          </div>
+          <div className="text-center py-2">
+            <Link
+              to="/upload"
+              className="inline-flex items-center gap-2 px-7 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all shadow-lg shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <Upload size={18} />
+              Începe — încarcă primul PDF
+              <ArrowRight size={16} />
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -214,14 +264,20 @@ function Dashboard() {
         { icon: FileText,  label: 'Rapoarte',      value: String(records.length), color: 'text-blue-500',   bg: 'bg-blue-50 dark:bg-blue-500/10' },
         { icon: BarChart2, label: 'Total analize', value: String(totalAnalyses),  color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-500/10' },
         { icon: Calendar,  label: 'Ultima scanare',value: lastScanDate || '—',    color: 'text-violet-500', bg: 'bg-violet-50 dark:bg-violet-500/10' },
-      ].map(({ icon: Icon, label, value, color, bg }) => (
-        <div key={label} className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-4">
+      ].map(({ icon: Icon, label, value, color, bg }, i) => (
+        <motion.div
+          key={label}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: 'easeOut', delay: i * 0.07 }}
+          className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-4"
+        >
           <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-3 ${bg} ${color}`}>
             <Icon size={16} />
           </div>
           <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-0.5">{label}</p>
           <p className="text-xl font-bold text-zinc-900 dark:text-white">{value}</p>
-        </div>
+        </motion.div>
       ))}
     </div>
   );
@@ -372,10 +428,19 @@ function Dashboard() {
                       )}
                       <span className="text-xs text-zinc-400">{group.analize.length} analize</span>
                     </div>
-                    <ChevronDown size={16} className={`text-zinc-400 transition-transform shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown size={16} className={`text-zinc-400 transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
                   </button>
 
+                  <AnimatePresence initial={false}>
                   {isOpen && (
+                    <motion.div
+                      key={group.categorie}
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.22, ease: 'easeInOut' }}
+                      style={{ overflow: 'hidden' }}
+                    >
                     <div className="border-t border-zinc-100 dark:border-zinc-800 divide-y divide-zinc-100 dark:divide-zinc-800">
                       {group.analize.map((analiza) => (
                         <div key={analiza.denumire} className="px-5 py-4">
@@ -441,7 +506,9 @@ function Dashboard() {
                         </div>
                       ))}
                     </div>
+                    </motion.div>
                   )}
+                  </AnimatePresence>
                 </div>
               );
             })}
@@ -492,12 +559,30 @@ function Dashboard() {
       )}
 
       {/* Medical disclaimer */}
-      {aiReport.notaMedicala && (
-        <div className="flex items-start gap-3 p-4 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl">
-          <AlertCircle size={15} className="text-zinc-400 shrink-0 mt-0.5" />
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">{aiReport.notaMedicala}</p>
+      <div className="rounded-2xl border border-amber-200 dark:border-amber-700/40 bg-amber-50 dark:bg-amber-950/20 p-5">
+        <div className="flex items-start gap-3">
+          <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0 mt-0.5">
+            <AlertCircle size={16} className="text-amber-600 dark:text-amber-400" />
+          </div>
+          <div>
+            <p className="font-semibold text-amber-800 dark:text-amber-300 text-sm mb-2">Notă importantă despre acuratețea raportului</p>
+            <p className="text-sm text-amber-700/80 dark:text-amber-400/80 leading-relaxed mb-2">
+              Raportul MedScan este generat automat de inteligență artificială pe baza valorilor tale numerice.
+              <strong> AI-ul poate face greșeli</strong> — poate interpreta greșit valori, poate omite context medical important
+              sau poate sugera cauze care nu se aplică situației tale.
+            </p>
+            <p className="text-sm text-amber-700/80 dark:text-amber-400/80 leading-relaxed">
+              <strong>Acest raport nu înlocuiește consultul medical de specialitate.</strong> Discută întotdeauna rezultatele
+              cu medicul tău înainte de a lua orice decizie medicală.
+            </p>
+            {aiReport.notaMedicala && (
+              <p className="text-xs text-amber-600/70 dark:text-amber-500/70 mt-3 pt-2.5 border-t border-amber-200 dark:border-amber-700/40">
+                {aiReport.notaMedicala}
+              </p>
+            )}
+          </div>
         </div>
-      )}
+      </div>
 
       {genError && (
         <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
@@ -623,7 +708,7 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
             <div>
               <div className="flex justify-between items-center mb-2">
                 <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Parolă</label>
-                <a href="#" className="text-sm font-medium text-blue-600 hover:text-blue-500">Ai uitat parola?</a>
+                <Link to="/forgot-password" className="text-sm font-medium text-blue-600 hover:text-blue-500">Ai uitat parola?</Link>
               </div>
               <div className="relative">
                 <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
@@ -652,21 +737,49 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
   );
 }
 
+const DOB_MONTHS = ['Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iulie','August','Septembrie','Octombrie','Noiembrie','Decembrie'];
+const DOB_CURRENT_YEAR = new Date().getFullYear();
+const DOB_YEARS = Array.from({ length: 121 }, (_, i) => DOB_CURRENT_YEAR - i);
+
 function RegisterPage({ onLogin }: { onLogin: () => void }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [age, setAge] = useState('');
+  const [dobDay, setDobDay] = useState('');
+  const [dobMonth, setDobMonth] = useState('');
+  const [dobYear, setDobYear] = useState('');
   const [gender, setGender] = useState('Male');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const maxDays = useMemo(() => {
+    if (!dobMonth || !dobYear) return 31;
+    return new Date(parseInt(dobYear), parseInt(dobMonth), 0).getDate();
+  }, [dobMonth, dobYear]);
+
+  const dateOfBirth = useMemo(() => {
+    if (!dobDay || !dobMonth || !dobYear) return '';
+    const dim = new Date(parseInt(dobYear), parseInt(dobMonth), 0).getDate();
+    const day = Math.min(parseInt(dobDay), dim);
+    return `${dobYear}-${dobMonth.padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  }, [dobDay, dobMonth, dobYear]);
+
+  const calculatedAge = useMemo(() => {
+    if (!dateOfBirth) return null;
+    const birth = new Date(dateOfBirth);
+    const now = new Date();
+    let age = now.getFullYear() - birth.getFullYear();
+    const m = now.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--;
+    return age >= 0 && age <= 120 ? age : null;
+  }, [dateOfBirth]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      const res = await authService.register({ name, email, password, age: parseInt(age), gender });
+      const res = await authService.register({ name, email, password, dateOfBirth, gender });
       if (res.data.accessToken) localStorage.setItem('token', res.data.accessToken);
       onLogin();
     } catch (err: unknown) {
@@ -726,21 +839,62 @@ function RegisterPage({ onLogin }: { onLogin: () => void }) {
                 <input type="password" value={password} onChange={e => setPassword(e.target.value)} className={inputCls} placeholder="••••••••" required />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">Vârstă</label>
-                <input type="number" value={age} onChange={e => setAge(e.target.value)}
-                  className="w-full px-3.5 py-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-sm dark:text-white"
-                  placeholder="25" required />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">Gen</label>
-                <select value={gender} onChange={e => setGender(e.target.value)}
-                  className="w-full px-3.5 py-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-sm dark:text-white">
-                  <option value="Male">Masculin</option>
-                  <option value="Female">Feminin</option>
+            <div>
+              <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
+                Data nașterii
+                {calculatedAge !== null && (
+                  <span className="ml-2 font-normal text-zinc-400">({calculatedAge} ani)</span>
+                )}
+              </label>
+              <div className="flex gap-2">
+                <select
+                  value={dobDay}
+                  onChange={e => setDobDay(e.target.value)}
+                  className="w-[4.5rem] shrink-0 px-2 py-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-sm dark:text-white"
+                  required
+                >
+                  <option value="">Zi</option>
+                  {Array.from({ length: maxDays }, (_, i) => i + 1).map(d => (
+                    <option key={d} value={String(d)}>{d}</option>
+                  ))}
+                </select>
+                <select
+                  value={dobMonth}
+                  onChange={e => setDobMonth(e.target.value)}
+                  className="flex-1 min-w-0 px-3 py-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-sm dark:text-white"
+                  required
+                >
+                  <option value="">Lună</option>
+                  {DOB_MONTHS.map((m, i) => (
+                    <option key={i + 1} value={String(i + 1)}>{m}</option>
+                  ))}
+                </select>
+                <select
+                  value={dobYear}
+                  onChange={e => setDobYear(e.target.value)}
+                  className="w-[5.5rem] shrink-0 px-2 py-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-sm dark:text-white"
+                  required
+                >
+                  <option value="">An</option>
+                  {DOB_YEARS.map(y => (
+                    <option key={y} value={String(y)}>{y}</option>
+                  ))}
                 </select>
               </div>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">Gen</label>
+              <select value={gender} onChange={e => setGender(e.target.value)}
+                className="w-full px-3.5 py-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-sm dark:text-white">
+                <option value="Male">Masculin</option>
+                <option value="Female">Feminin</option>
+              </select>
+            </div>
+            <div className="flex items-start gap-3 px-4 py-3.5 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/40 rounded-xl">
+              <Brain size={15} className="text-blue-500 dark:text-blue-400 shrink-0 mt-0.5" />
+              <p className="text-xs text-blue-700/80 dark:text-blue-400/80 leading-relaxed">
+                Vârsta și genul sunt necesare deoarece ajută AI-ul să compare valorile tale cu intervalele de referință corecte și să detecteze mai precis anomaliile.
+              </p>
             </div>
             <button type="submit" disabled={loading}
               className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl font-semibold text-sm transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 group mt-2"
@@ -989,7 +1143,44 @@ function RecordDetailPage() {
         </div>
       ) : record && (
         <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl overflow-hidden">
-          <div className="overflow-x-auto">
+
+          {/* ── Mobile card list (< sm) ── */}
+          <div className="sm:hidden divide-y divide-zinc-100 dark:divide-zinc-800/60">
+            {record.results.map((r, i) => {
+              const isAbnormal = r.status !== 'Normal';
+              const isLow = r.status === 'Low';
+              const borderCls = isAbnormal && !isLow ? 'border-l-rose-400' : isLow ? 'border-l-amber-400' : 'border-l-transparent';
+              const refText = r.minRef != null && r.maxRef != null
+                ? `${r.minRef} – ${r.maxRef}`
+                : r.minRef != null ? `≥ ${r.minRef}`
+                : r.maxRef != null ? `≤ ${r.maxRef}`
+                : null;
+              return (
+                <div key={r.id} className={`flex items-start gap-3 px-4 py-3.5 border-l-[3px] ${borderCls} ${isAbnormal ? 'bg-rose-50/40 dark:bg-rose-950/20' : ''}`}>
+                  <span className="mt-0.5 w-5 text-xs text-zinc-400 tabular-nums shrink-0 text-right">{i + 1}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <span className="font-medium text-zinc-900 dark:text-white text-sm leading-snug">{r.name}</span>
+                      <span className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-semibold ${statusCls(r.status)}`}>
+                        {STATUS_LABEL[r.status] ?? r.status}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={`text-sm font-semibold font-mono tabular-nums ${isAbnormal ? 'text-rose-600 dark:text-rose-400' : 'text-zinc-700 dark:text-zinc-300'}`}>
+                        {r.textValue ?? r.value ?? '—'}
+                      </span>
+                      {r.unit && <span className="text-xs text-zinc-400">{r.unit}</span>}
+                      {refText && <span className="text-xs text-zinc-400 font-mono">ref: {refText}</span>}
+                      {r.referenceNote && <span className="text-xs text-blue-400">{r.referenceNote}</span>}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* ── Desktop table (sm+) ── */}
+          <div className="hidden sm:block overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-800/40">
@@ -1030,7 +1221,7 @@ function RecordDetailPage() {
               })}
             </tbody>
           </table>
-          </div>
+          </div>{/* end sm:block */}
         </div>
       )}
     </div>
@@ -1498,6 +1689,212 @@ function EvolutionPage() {
   );
 }
 
+function ForgotPasswordPage() {
+  const [email, setEmail] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await authService.forgotPassword(email);
+    } catch { /* silent — backend always returns 200 */ }
+    finally { setLoading(false); setSubmitted(true); }
+  };
+
+  return (
+    <div className="min-h-screen flex bg-white dark:bg-zinc-950">
+      <AuthBrand mode="login" />
+      <div className="flex-1 flex items-center justify-center p-8">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+          className="w-full max-w-sm"
+        >
+          <div className="flex items-center gap-2.5 mb-10 lg:hidden">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+              <Activity size={16} className="text-white" />
+            </div>
+            <span className="font-bold text-lg text-zinc-900 dark:text-white">MedScan</span>
+          </div>
+
+          {submitted ? (
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-6">
+                <CheckCircle2 size={30} className="text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2">Email trimis!</h2>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8 leading-relaxed">
+                Dacă adresa <strong>{email}</strong> există în sistem, vei primi un email cu instrucțiuni de resetare a parolei.
+              </p>
+              <Link
+                to="/login"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-500 transition-colors"
+              >
+                <ChevronRight size={15} className="rotate-180" /> Înapoi la autentificare
+              </Link>
+            </div>
+          ) : (
+            <>
+              <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-1.5">Ai uitat parola?</h2>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8">
+                Introdu adresa de email și îți trimitem un link de resetare.
+              </p>
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div>
+                  <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">Email</label>
+                  <div className="relative">
+                    <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-sm dark:text-white"
+                      placeholder="ion@example.com"
+                      required
+                    />
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl font-semibold text-sm transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2"
+                >
+                  {loading
+                    ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Se trimite...</>
+                    : <>Trimite link de resetare <ArrowRight size={16} /></>}
+                </button>
+              </form>
+              <p className="mt-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                <Link to="/login" className="font-semibold text-blue-600 hover:text-blue-500">
+                  Înapoi la autentificare
+                </Link>
+              </p>
+            </>
+          )}
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
+function ResetPasswordPage() {
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('token') ?? '';
+  const navigate = useNavigate();
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (password !== confirm) { setError('Parolele nu coincid.'); return; }
+    if (password.length < 6) { setError('Parola trebuie să aibă cel puțin 6 caractere.'); return; }
+    setError('');
+    setLoading(true);
+    try {
+      await authService.resetPassword(token, password);
+      navigate('/login', { replace: true, state: { resetSuccess: true } });
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } };
+      setError(e?.response?.data?.message || 'Token invalid sau expirat. Solicită un link nou.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!token) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950 p-8">
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-2xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center mx-auto mb-6">
+            <AlertCircle size={30} className="text-rose-600 dark:text-rose-400" />
+          </div>
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-2">Link invalid</h2>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">Linkul de resetare este invalid sau a expirat.</p>
+          <Link to="/forgot-password" className="font-semibold text-blue-600 hover:text-blue-500 text-sm">
+            Solicită un link nou
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex bg-white dark:bg-zinc-950">
+      <AuthBrand mode="login" />
+      <div className="flex-1 flex items-center justify-center p-8">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+          className="w-full max-w-sm"
+        >
+          <div className="flex items-center gap-2.5 mb-10 lg:hidden">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+              <Activity size={16} className="text-white" />
+            </div>
+            <span className="font-bold text-lg text-zinc-900 dark:text-white">MedScan</span>
+          </div>
+
+          <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-1.5">Parolă nouă</h2>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8">Alege o parolă nouă pentru contul tău MedScan.</p>
+
+          {error && (
+            <div className="mb-6 p-3.5 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 rounded-xl text-sm flex items-center gap-2">
+              <AlertCircle size={15} className="shrink-0" /> {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">Parolă nouă</label>
+              <div className="relative">
+                <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-sm dark:text-white"
+                  placeholder="••••••••"
+                  required
+                  minLength={6}
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">Confirmă parola</label>
+              <div className="relative">
+                <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                <input
+                  type="password"
+                  value={confirm}
+                  onChange={e => setConfirm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-sm dark:text-white"
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl font-semibold text-sm transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 group"
+            >
+              {loading
+                ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Se salvează...</>
+                : <>Salvează parola <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" /></>}
+            </button>
+          </form>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
 function MobileNav() {
   const location = useLocation();
   const navItems = [
@@ -1537,6 +1934,8 @@ function App() {
         <Routes>
           <Route path="/login" element={<LoginPage onLogin={() => setIsAuthenticated(true)} />} />
           <Route path="/register" element={<RegisterPage onLogin={() => setIsAuthenticated(true)} />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       ) : (
