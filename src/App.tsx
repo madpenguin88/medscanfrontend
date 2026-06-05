@@ -36,7 +36,7 @@ function Sidebar({ onLogout }: { onLogout: () => void }) {
     : '?';
 
   return (
-    <aside className="w-64 h-screen bg-white dark:bg-zinc-900 border-r border-zinc-100 dark:border-zinc-800/60 flex flex-col sticky top-0 shrink-0">
+    <aside className="w-64 h-screen bg-white dark:bg-zinc-900 border-r border-zinc-100 dark:border-zinc-800/60 hidden lg:flex flex-col sticky top-0 shrink-0">
       <div className="h-16 px-6 flex items-center gap-3 border-b border-zinc-100 dark:border-zinc-800/60">
         <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/25">
           <Activity size={17} className="text-white" />
@@ -181,7 +181,7 @@ function Dashboard() {
   // ── No records ─────────────────────────────────────────────────────────────
   if (records.length === 0) {
     return (
-      <div className="p-8 max-w-3xl mx-auto">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto">
         <p className="text-sm text-zinc-400 dark:text-zinc-500 mb-1.5 capitalize">{today}</p>
         <h1 className="text-3xl font-bold text-zinc-900 dark:text-white mb-10">
           {greeting}{firstName ? `, ${firstName}` : ''}!
@@ -229,7 +229,7 @@ function Dashboard() {
   // ── Has records but no report (or currently generating) ───────────────────
   if (!aiReport) {
     return (
-      <div className="p-8 max-w-5xl mx-auto">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto">
         <p className="text-sm text-zinc-400 dark:text-zinc-500 mb-1.5 capitalize">{today}</p>
         <h1 className="text-3xl font-bold text-zinc-900 dark:text-white mb-8">
           {greeting}{firstName ? `, ${firstName}` : ''}!
@@ -300,9 +300,9 @@ function Dashboard() {
   const totalInterpreted = aiReport.interpretareAnalize.reduce((a, g) => a + g.analize.length, 0);
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-8">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-8">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
           <p className="text-sm text-zinc-400 dark:text-zinc-500 mb-1.5 capitalize">{today}</p>
           <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">
@@ -511,7 +511,7 @@ function Dashboard() {
 
 function UploadPage() {
   return (
-    <div className="p-8 max-w-4xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Încarcă rezultate medicale</h1>
         <p className="text-zinc-500 dark:text-zinc-400 mt-1.5">Importă un document PDF și AI-ul MedScan va extrage automat valorile.</p>
@@ -805,7 +805,7 @@ function RecordsPage() {
   };
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Istoricul analizelor</h1>
         <p className="text-zinc-500 dark:text-zinc-400 mt-1.5">Toate rapoartele tale medicale salvate în MedScan.</p>
@@ -930,7 +930,7 @@ function RecordDetailPage() {
   const normalCount = record ? record.results.filter(r => r.status === 'Normal').length : 0;
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto">
       {/* Back + header */}
       <div className="mb-8">
         <button
@@ -989,6 +989,7 @@ function RecordDetailPage() {
         </div>
       ) : record && (
         <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-800/40">
@@ -1029,6 +1030,7 @@ function RecordDetailPage() {
               })}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>
@@ -1058,7 +1060,7 @@ function ProfilePage() {
   ];
 
   return (
-    <div className="p-8 max-w-2xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-2xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Profilul meu</h1>
         <p className="text-zinc-500 dark:text-zinc-400 mt-1.5">Informațiile contului tău MedScan.</p>
@@ -1074,7 +1076,7 @@ function ProfilePage() {
             <p className="text-sm text-zinc-500 mt-0.5">{profile.email}</p>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-0 divide-x-0">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 divide-x-0">
           {fields.map(({ label, value }) => (
             <div key={label} className="p-5 border-b border-zinc-100 dark:border-zinc-800 last:border-b-0">
               <p className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">{label}</p>
@@ -1208,7 +1210,7 @@ function EvolutionPage() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Evoluție analize</h1>
         <p className="text-zinc-500 dark:text-zinc-400 mt-1">Urmărește tendința valorilor tale medicale în timp.</p>
@@ -1258,10 +1260,10 @@ function EvolutionPage() {
           <p className="text-sm text-zinc-400 max-w-xs">Graficul evolutiv necesită analize cu valori numerice și dată de recoltare.</p>
         </div>
       ) : (
-        <div className="flex gap-5 items-start">
+        <div className="flex flex-col lg:flex-row gap-5 lg:items-start">
 
           {/* ── Left panel ── */}
-          <div className="w-72 shrink-0 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl overflow-hidden">
+          <div className="w-full lg:w-72 shrink-0 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl overflow-hidden">
             {/* Header */}
             <div className="px-4 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
               <div className="flex items-center justify-between mb-3">
@@ -1293,7 +1295,7 @@ function EvolutionPage() {
             </div>
 
             {/* Analysis list */}
-            <div className="overflow-y-auto max-h-[620px]">
+            <div className="overflow-y-auto max-h-[260px] lg:max-h-[620px]">
               {filtered.length === 0 ? (
                 <p className="text-center text-xs text-zinc-400 py-8">Niciun rezultat.</p>
               ) : (
@@ -1360,7 +1362,7 @@ function EvolutionPage() {
           {/* ── Right panel ── */}
           <div className="flex-1 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl overflow-hidden">
             {!selectedName ? (
-              <div className="flex flex-col items-center justify-center h-[540px] text-center px-8">
+              <div className="flex flex-col items-center justify-center min-h-[260px] lg:h-[540px] text-center px-8">
                 <div className="w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-300 dark:text-zinc-600 mb-4">
                   <TrendingUp size={30} />
                 </div>
@@ -1406,9 +1408,9 @@ function EvolutionPage() {
 
                 {/* Summary stats */}
                 {summaryStats && (
-                  <div className="grid grid-cols-4 divide-x divide-zinc-100 dark:divide-zinc-800 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/20">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-zinc-100 dark:bg-zinc-800 border-b border-zinc-100 dark:border-zinc-800">
                     {/* Ultima valoare */}
-                    <div className="px-5 py-4">
+                    <div className="px-5 py-4 bg-white dark:bg-zinc-900">
                       <p className="text-xs text-zinc-400 mb-1.5">Ultima valoare</p>
                       <p className={`text-xl font-bold leading-none ${
                         summaryStats.last.status === 'High' || summaryStats.last.status === 'Abnormal'
@@ -1420,7 +1422,7 @@ function EvolutionPage() {
                       <p className="text-xs text-zinc-400 mt-1">{summaryStats.last.unit}</p>
                     </div>
                     {/* Interval referinta */}
-                    <div className="px-5 py-4">
+                    <div className="px-5 py-4 bg-white dark:bg-zinc-900">
                       <p className="text-xs text-zinc-400 mb-1.5">Interval de referință</p>
                       {(() => {
                         const { minRef, maxRef, referenceNote, unit } = summaryStats.last;
@@ -1465,13 +1467,13 @@ function EvolutionPage() {
                       })()}
                     </div>
                     {/* Media */}
-                    <div className="px-5 py-4">
+                    <div className="px-5 py-4 bg-white dark:bg-zinc-900">
                       <p className="text-xs text-zinc-400 mb-1.5">Media</p>
                       <p className="text-base font-semibold text-zinc-800 dark:text-zinc-200 leading-none">{summaryStats.avg}</p>
                       <p className="text-xs text-zinc-400 mt-1">{summaryStats.last.unit}</p>
                     </div>
                     {/* In interval */}
-                    <div className="px-5 py-4">
+                    <div className="px-5 py-4 bg-white dark:bg-zinc-900">
                       <p className="text-xs text-zinc-400 mb-1.5">Valori normale</p>
                       <p className="text-base font-semibold text-zinc-800 dark:text-zinc-200 leading-none">
                         {summaryStats.inRange}/{summaryStats.total}
@@ -1496,6 +1498,36 @@ function EvolutionPage() {
   );
 }
 
+function MobileNav() {
+  const location = useLocation();
+  const navItems = [
+    { icon: Home,       label: 'Acasă',    path: '/' },
+    { icon: Upload,     label: 'Upload',   path: '/upload' },
+    { icon: FileText,   label: 'Analize',  path: '/records' },
+    { icon: TrendingUp, label: 'Evoluție', path: '/evolution' },
+    { icon: User,       label: 'Profil',   path: '/profile' },
+  ];
+  return (
+    <nav className="fixed bottom-0 inset-x-0 z-50 lg:hidden bg-white dark:bg-zinc-900 border-t border-zinc-100 dark:border-zinc-800/60 flex safe-area-inset-bottom">
+      {navItems.map(item => {
+        const isActive = location.pathname === item.path;
+        return (
+          <Link
+            key={item.path}
+            to={item.path}
+            className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 pb-3 text-[10px] font-semibold transition-colors ${
+              isActive ? 'text-blue-600 dark:text-blue-400' : 'text-zinc-400 dark:text-zinc-500'
+            }`}
+          >
+            <item.icon size={20} />
+            <span>{item.label}</span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => !!localStorage.getItem('token'));
 
@@ -1510,7 +1542,7 @@ function App() {
       ) : (
         <div className="flex min-h-screen bg-zinc-50 dark:bg-zinc-950 font-sans">
           <Sidebar onLogout={() => { setIsAuthenticated(false); localStorage.removeItem('token'); }} />
-          <main className="flex-1 overflow-y-auto min-h-screen">
+          <main className="flex-1 overflow-y-auto min-h-screen pb-16 lg:pb-0">
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/upload" element={<UploadPage />} />
@@ -1521,6 +1553,7 @@ function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
+          <MobileNav />
         </div>
       )}
     </Router>
