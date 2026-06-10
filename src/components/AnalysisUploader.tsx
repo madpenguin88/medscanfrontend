@@ -48,7 +48,27 @@ export function AnalysisUploader({ onSave }: Props) {
   }, [isParsing]);
 
   const handleUpdateAnalysis = (id: string, field: keyof MedicalAnalysis, value: any) => {
-    setAnalyses(analyses.map(a => a.id === id ? { ...a, [field]: value } : a));
+    setAnalyses(analyses.map(a => {
+      if (a.id !== id) return a;
+      const updated = { ...a, [field]: value };
+      if (field === 'value' || field === 'textValue') {
+        const numVal = field === 'value' ? (value as number | null) : a.value;
+        const min = updated.referenceRange?.min;
+        const max = updated.referenceRange?.max;
+        if (field === 'textValue') {
+          // qualitative result — keep status as-is (user can see it's abnormal visually)
+        } else if (numVal == null) {
+          updated.status = 'Normal';
+        } else if (max != null && numVal > max) {
+          updated.status = 'High';
+        } else if (min != null && min !== 0 && numVal < min) {
+          updated.status = 'Low';
+        } else if (max != null || min != null) {
+          updated.status = 'Normal';
+        }
+      }
+      return updated;
+    }));
   };
 
   const handleRemoveAnalysis = (id: string) => {

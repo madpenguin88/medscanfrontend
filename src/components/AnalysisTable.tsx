@@ -15,6 +15,20 @@ const STATUS_CONFIG = {
   Normal:   { label: 'Normal',   cls: 'text-emerald-700 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-400/10', Icon: Minus },
 } as const;
 
+function formatRefLabel(item: MedicalAnalysis): string | null {
+  if (item.referenceRange) {
+    const { min, max } = item.referenceRange;
+    if (min !== undefined && max !== undefined) return `${min} – ${max}`;
+    if (max !== undefined) return `< ${max}`;
+    if (min !== undefined) return `> ${min}`;
+  }
+  // referenceNote is now always the patient-specific short interval (set by backend)
+  if (item.referenceNote && item.referenceNote.trim().length > 0) {
+    return item.referenceNote.trim();
+  }
+  return null;
+}
+
 export function AnalysisTable({ analyses, editable = false, onUpdate, onRemove }: Props) {
   if (analyses.length === 0) return null;
 
@@ -48,13 +62,7 @@ export function AnalysisTable({ analyses, editable = false, onUpdate, onRemove }
             : isLow
             ? 'border-l-amber-400'
             : 'border-l-transparent';
-          const refLabel = item.referenceRange
-            ? (item.referenceRange.min !== undefined && item.referenceRange.max !== undefined
-                ? `${item.referenceRange.min} – ${item.referenceRange.max}`
-                : item.referenceRange.max !== undefined
-                ? `< ${item.referenceRange.max}`
-                : `> ${item.referenceRange.min}`)
-            : item.referenceNote ?? null;
+          const refLabel = formatRefLabel(item);
           return (
             <div
               key={item.id}
@@ -207,21 +215,12 @@ export function AnalysisTable({ analyses, editable = false, onUpdate, onRemove }
                     )}
                   </td>
                   <td className="px-3 py-3.5 max-w-[200px]">
-                    {item.referenceRange ? (
-                      <span className="text-zinc-500 dark:text-zinc-400 text-xs font-mono tabular-nums">
-                        {item.referenceRange.min !== undefined && item.referenceRange.max !== undefined
-                          ? `${item.referenceRange.min} – ${item.referenceRange.max}`
-                          : item.referenceRange.max !== undefined
-                          ? `< ${item.referenceRange.max}`
-                          : `> ${item.referenceRange.min}`}
-                      </span>
-                    ) : item.referenceNote ? (
-                      <span className="text-zinc-500 dark:text-zinc-400 text-xs font-mono" title={item.referenceNote}>
-                        {item.referenceNote.length > 28 ? item.referenceNote.substring(0, 28) + '…' : item.referenceNote}
-                      </span>
-                    ) : (
-                      <span className="text-zinc-300 dark:text-zinc-700">—</span>
-                    )}
+                    {(() => {
+                      const ref = formatRefLabel(item);
+                      return ref
+                        ? <span className="text-zinc-500 dark:text-zinc-400 text-xs font-mono tabular-nums">{ref}</span>
+                        : <span className="text-zinc-300 dark:text-zinc-700">—</span>;
+                    })()}
                   </td>
                   <td className="px-3 pr-5 py-3.5">
                     {st ? (
