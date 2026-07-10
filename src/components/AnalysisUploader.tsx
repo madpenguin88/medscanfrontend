@@ -183,7 +183,7 @@ export function AnalysisUploader({ onSave }: Props) {
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <Link
-                  to="/"
+                  to="/dashboard"
                   className="flex items-center gap-1.5 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold text-sm transition-all shadow-md shadow-emerald-500/25 hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <Sparkles size={14} />

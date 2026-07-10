@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, type FormEvent } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate, useParams, useSearchParams, Navigate } from 'react-router-dom';
-import { Activity, FileText, Home, Upload, User, AlertCircle, CheckCircle2, LogOut, ArrowRight, Lock, Mail, Download, ChevronRight, Calendar, BarChart2, Sparkles, Trash2, TrendingUp, TrendingDown, Minus, Search, Shield, RefreshCw, ChevronDown, Loader2, Brain, FlaskConical, Heart } from 'lucide-react';
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useParams, useSearchParams, Navigate } from 'react-router-dom';
+import { Activity, FileText, Upload, User, AlertCircle, CheckCircle2, ArrowRight, Lock, Mail, Download, ChevronRight, Calendar, BarChart2, Sparkles, Trash2, TrendingUp, TrendingDown, Minus, Search, Shield, RefreshCw, ChevronDown, Loader2, Brain, FlaskConical, Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { authService, userService, medicalRecordsService, healthReportService } from './api';
 import { AnalysisUploader } from './components/AnalysisUploader';
@@ -8,80 +8,14 @@ import { EvolutionChart } from './components/EvolutionChart';
 import type { EvolutionDataPoint } from './components/EvolutionChart';
 import type { MedicalAnalysis, MedicalRecordDto, MedicalRecordSummaryDto, AiHealthReportDto, StareGenerala } from './types/medical';
 
-export interface UserProfile {
-  name: string;
-  email: string;
-  age: number;
-  gender: string;
-}
+import type { UserProfile } from './types/user';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { ProtectedRoute } from './components/routing/ProtectedRoute';
+import { GuestRoute } from './components/routing/GuestRoute';
+import { AppShell } from './components/layout/AppShell';
+import { LandingPage } from './pages/LandingPage';
+import { PRODUCT_STEPS } from './constants/productSteps';
 
-function Sidebar({ onLogout }: { onLogout: () => void }) {
-  const location = useLocation();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-
-  useEffect(() => {
-    userService.getProfile().then(res => setProfile(res.data)).catch(console.error);
-  }, []);
-
-  const navItems = [
-    { icon: Home, label: 'Dashboard', path: '/' },
-    { icon: Upload, label: 'Upload PDF', path: '/upload' },
-    { icon: FileText, label: 'Analizele mele', path: '/records' },
-    { icon: TrendingUp, label: 'Evoluție', path: '/evolution' },
-    { icon: User, label: 'Profil', path: '/profile' },
-  ];
-
-  const initials = profile?.name
-    ? profile.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-    : '?';
-
-  return (
-    <aside className="w-64 h-screen bg-white dark:bg-zinc-900 border-r border-zinc-100 dark:border-zinc-800/60 hidden lg:flex flex-col sticky top-0 shrink-0">
-      <div className="h-16 px-6 flex items-center gap-3 border-b border-zinc-100 dark:border-zinc-800/60">
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/25">
-          <Activity size={17} className="text-white" />
-        </div>
-        <span className="font-bold text-lg text-zinc-900 dark:text-white tracking-tight">MedScan</span>
-        <span className="ml-auto text-[10px] font-semibold text-zinc-400 dark:text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded-md">Beta</span>
-      </div>
-      <nav className="flex-1 px-3 py-5 space-y-0.5">
-        {navItems.map(item => {
-          const isActive = location.pathname === item.path;
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-150 ${
-                isActive
-                  ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold'
-                  : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 hover:text-zinc-900 dark:hover:text-zinc-100'
-              }`}
-            >
-              <item.icon size={18} />
-              <span>{item.label}</span>
-              {isActive && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400" />}
-            </Link>
-          );
-        })}
-      </nav>
-      <div className="p-3 border-t border-zinc-100 dark:border-zinc-800/60">
-        <button
-          onClick={onLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-500/10 transition-all group"
-        >
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
-            {initials}
-          </div>
-          <div className="flex-1 min-w-0 text-left">
-            <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 truncate leading-tight">{profile?.name || '—'}</p>
-            <p className="text-xs text-zinc-400 leading-tight">Delogare</p>
-          </div>
-          <LogOut size={15} className="text-zinc-400 group-hover:text-red-500 transition-colors shrink-0" />
-        </button>
-      </div>
-    </aside>
-  );
-}
 
 // ── Dashboard helper utilities ────────────────────────────────────────────────
 
@@ -194,38 +128,7 @@ function Dashboard() {
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {[
-              {
-                step: '01',
-                icon: Upload,
-                iconBg: 'bg-blue-100 dark:bg-blue-900/40',
-                iconColor: 'text-blue-600 dark:text-blue-400',
-                numColor: 'text-blue-400/20 dark:text-blue-400/15',
-                borderColor: 'border-blue-100 dark:border-blue-900/40',
-                title: 'Încarcă PDF-ul',
-                desc: 'Primești un PDF cu analizele de la laborator. Îl încarci în MedScan cu drag & drop sau prin selecție.',
-              },
-              {
-                step: '02',
-                icon: CheckCircle2,
-                iconBg: 'bg-indigo-100 dark:bg-indigo-900/40',
-                iconColor: 'text-indigo-600 dark:text-indigo-400',
-                numColor: 'text-indigo-400/20 dark:text-indigo-400/15',
-                borderColor: 'border-indigo-100 dark:border-indigo-900/40',
-                title: 'Verifică și salvează',
-                desc: 'AI-ul extrage automat valorile numerice. Verifici că sunt corecte, modifici dacă e nevoie, apoi salvezi.',
-              },
-              {
-                step: '03',
-                icon: Brain,
-                iconBg: 'bg-violet-100 dark:bg-violet-900/40',
-                iconColor: 'text-violet-600 dark:text-violet-400',
-                numColor: 'text-violet-400/20 dark:text-violet-400/15',
-                borderColor: 'border-violet-100 dark:border-violet-900/40',
-                title: 'Generează raport AI',
-                desc: 'Revii pe Dashboard și apeși „Generează Raport AI". MedScan analizează toate valorile și creează un rezumat personalizat.',
-              },
-            ].map(({ step, icon: Icon, iconBg, iconColor, numColor, borderColor, title, desc }, i) => (
+            {PRODUCT_STEPS.map(({ step, icon: Icon, iconBg, iconColor, numColor, borderColor, title, desc }, i) => (
               <motion.div
                 key={step}
                 initial={{ opacity: 0, y: 16 }}
@@ -621,10 +524,12 @@ function AuthBrand({ mode }: { mode: 'login' | 'register' }) {
       <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-white/5 pointer-events-none" />
       <div className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full bg-white/5 pointer-events-none" />
       <div className="relative flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-          <Activity size={22} className="text-white" />
-        </div>
-        <span className="text-xl font-bold text-white tracking-tight">MedScan</span>
+        <Link to="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+          <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+            <Activity size={22} className="text-white" />
+          </div>
+          <span className="text-xl font-bold text-white tracking-tight">MedScan</span>
+        </Link>
       </div>
       <div className="relative">
         <h2 className="text-4xl font-bold text-white leading-tight mb-5 whitespace-pre-line">
@@ -643,12 +548,18 @@ function AuthBrand({ mode }: { mode: 'login' | 'register' }) {
             <span className="text-sm text-blue-100">{f}</span>
           </div>
         ))}
+        <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-blue-200 hover:text-white transition-colors mt-2">
+          <ChevronRight size={14} className="rotate-180" /> Înapoi la pagina principală
+        </Link>
       </div>
     </div>
   );
 }
 
-function LoginPage({ onLogin }: { onLogin: () => void }) {
+function LoginPage() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -661,7 +572,9 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
     try {
       const res = await authService.login({ email, password });
       if (res.data.accessToken) localStorage.setItem('token', res.data.accessToken);
-      onLogin();
+      login();
+      const next = searchParams.get('next');
+      navigate(next ? decodeURIComponent(next) : '/dashboard', { replace: true });
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } } };
       setError(e?.response?.data?.message || 'Email sau parolă incorectă.');
@@ -741,7 +654,10 @@ const DOB_MONTHS = ['Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iul
 const DOB_CURRENT_YEAR = new Date().getFullYear();
 const DOB_YEARS = Array.from({ length: 121 }, (_, i) => DOB_CURRENT_YEAR - i);
 
-function RegisterPage({ onLogin }: { onLogin: () => void }) {
+function RegisterPage() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -781,7 +697,9 @@ function RegisterPage({ onLogin }: { onLogin: () => void }) {
     try {
       const res = await authService.register({ name, email, password, dateOfBirth, gender });
       if (res.data.accessToken) localStorage.setItem('token', res.data.accessToken);
-      onLogin();
+      login();
+      const next = searchParams.get('next');
+      navigate(next ? decodeURIComponent(next) : '/dashboard', { replace: true });
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } } };
       setError(e?.response?.data?.message || 'Înregistrare eșuată. Încearcă din nou.');
@@ -1895,66 +1813,37 @@ function ResetPasswordPage() {
   );
 }
 
-function MobileNav() {
-  const location = useLocation();
-  const navItems = [
-    { icon: Home,       label: 'Acasă',    path: '/' },
-    { icon: Upload,     label: 'Upload',   path: '/upload' },
-    { icon: FileText,   label: 'Analize',  path: '/records' },
-    { icon: TrendingUp, label: 'Evoluție', path: '/evolution' },
-    { icon: User,       label: 'Profil',   path: '/profile' },
-  ];
+function AppContent() {
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-50 lg:hidden bg-white dark:bg-zinc-900 border-t border-zinc-100 dark:border-zinc-800/60 flex safe-area-inset-bottom">
-      {navItems.map(item => {
-        const isActive = location.pathname === item.path;
-        return (
-          <Link
-            key={item.path}
-            to={item.path}
-            className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 pb-3 text-[10px] font-semibold transition-colors ${
-              isActive ? 'text-blue-600 dark:text-blue-400' : 'text-zinc-400 dark:text-zinc-500'
-            }`}
-          >
-            <item.icon size={20} />
-            <span>{item.label}</span>
-          </Link>
-        );
-      })}
-    </nav>
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route element={<GuestRoute />}>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+      </Route>
+      <Route element={<ProtectedRoute />}>
+        <Route element={<AppShell />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/upload" element={<UploadPage />} />
+          <Route path="/records" element={<RecordsPage />} />
+          <Route path="/records/:id" element={<RecordDetailPage />} />
+          <Route path="/evolution" element={<EvolutionPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+        </Route>
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => !!localStorage.getItem('token'));
-
   return (
     <Router>
-      {!isAuthenticated ? (
-        <Routes>
-          <Route path="/login" element={<LoginPage onLogin={() => setIsAuthenticated(true)} />} />
-          <Route path="/register" element={<RegisterPage onLogin={() => setIsAuthenticated(true)} />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
-      ) : (
-        <div className="flex min-h-screen bg-zinc-50 dark:bg-zinc-950 font-sans">
-          <Sidebar onLogout={() => { setIsAuthenticated(false); localStorage.removeItem('token'); }} />
-          <main className="flex-1 overflow-y-auto min-h-screen pb-16 lg:pb-0">
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/upload" element={<UploadPage />} />
-              <Route path="/records" element={<RecordsPage />} />
-              <Route path="/records/:id" element={<RecordDetailPage />} />
-              <Route path="/evolution" element={<EvolutionPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </main>
-          <MobileNav />
-        </div>
-      )}
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </Router>
   );
 }

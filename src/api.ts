@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { MedicalAnalysis, MedicalRecordDto, MedicalRecordSummaryDto, AiHealthReportDto } from './types/medical';
+import { isPublicPath } from './constants/publicRoutes';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5117/api';
 
@@ -25,9 +26,9 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       localStorage.removeItem('token');
-      // Only reload if we are not already on the login page to avoid loops
-      if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
-        window.location.href = '/login';
+      if (!isPublicPath(window.location.pathname)) {
+        const next = encodeURIComponent(window.location.pathname + window.location.search);
+        window.location.href = `/login?next=${next}`;
       }
     }
     return Promise.reject(error);
